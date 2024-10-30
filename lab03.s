@@ -98,9 +98,34 @@ outShowRowLoop:
 # ----------------------------------------
 
 rgb888_to_rgb565:
+    add t0, zero, zero # Row counter
+nextColumn:
+    bge t0,a2,endLoop
+    add t1,zero,zero # Column counter
+cLoop:
+    bge t1,a1, endCloop
+    lbu  t2, 0(a0) # get red
+    lbu  t3, 1(a0) # get green
+    lbu  t4, 2(a0) # get blue
+    andi t2,t2,0xf8 # Clears 3 LSbs of red
+    slli t2,t2,8 # Shift left by 8 bits to make room for green and blue
+    andi t3,t3,0xfc # Clears 2 LSbs of green
+    slli t3,t3,3 # Shift left by 3 bits to put green in the correct place for the specific format
+    srli t4,t4,3 # Shifts right to completely remove 3 LSbs of blue
+    or t2,t2,t3 #adds bits of green next to red
+    or t2,t2,t4 #adds bits of blue next to green
+    sh   t2, 0(a3)  #store half word into currently indexed pixel of RGB565
+    addi a0, a0, 3 
+    addi a3, a3, 2   
+    addi t1, t1, 1
+    j cLoop
+endCloop:
+    addi t0,t0,1
+    j nextColumn    
 # ----------------------------------------
 # Write your code here.
 # You may move the "return" instruction (jalr zero, ra, 0).
+endLoop:
     jalr zero, ra, 0
 
 
